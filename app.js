@@ -1233,3 +1233,853 @@ supabaseClient
 // ======================================================
 
 checkUser();
+/* =========================================================
+   نظام إدارة الأصناف والمخازن والمصادر
+========================================================= */
+
+let warehousesData = [];
+let sourcesData = [];
+
+
+/* =========================================================
+   تحميل المخازن
+========================================================= */
+
+async function loadWarehouses() {
+
+    const { data, error } = await supabase
+        .from("warehouses")
+        .select("*")
+        .eq("active", true)
+        .order("name");
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    warehousesData = data || [];
+
+    const warehouseSelect = document.getElementById("productWarehouse");
+
+    if (warehouseSelect) {
+
+        warehouseSelect.innerHTML =
+            '<option value="">اختر المخزن</option>';
+
+        warehousesData.forEach(warehouse => {
+
+            warehouseSelect.innerHTML += `
+                <option value="${warehouse.id}">
+                    ${warehouse.name}
+                </option>
+            `;
+
+        });
+
+    }
+}
+
+
+/* =========================================================
+   تحميل المصادر
+========================================================= */
+
+async function loadSources() {
+
+    const { data, error } = await supabase
+        .from("sources")
+        .select("*")
+        .eq("active", true)
+        .order("name");
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    sourcesData = data || [];
+
+    const sourceSelects = [
+        document.getElementById("productSource"),
+        document.getElementById("incomingSource")
+    ];
+
+    sourceSelects.forEach(select => {
+
+        if (!select) return;
+
+        select.innerHTML =
+            '<option value="">اختر المصدر</option>';
+
+        sourcesData.forEach(source => {
+
+            select.innerHTML += `
+                <option value="${source.id}">
+                    ${source.name}
+                </option>
+            `;
+
+        });
+
+    });
+}
+
+
+/* =========================================================
+   تحميل الوحدات
+========================================================= */
+
+async function loadProductUnits() {
+
+    const { data, error } = await supabase
+        .from("units")
+        .select("*")
+        .eq("active", true)
+        .order("name");
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    const select = document.getElementById("productUnit");
+
+    if (!select) return;
+
+    select.innerHTML =
+        '<option value="">اختر الوحدة</option>';
+
+    (data || []).forEach(unit => {
+
+        select.innerHTML += `
+            <option value="${unit.id}">
+                ${unit.name}
+            </option>
+        `;
+
+    });
+}
+
+
+/* =========================================================
+   فتح نافذة إضافة صنف
+========================================================= */
+
+function openProductModal() {
+
+    const modal = document.getElementById("productModal");
+
+    if (!modal) return;
+
+    modal.classList.add("show");
+
+}
+
+
+/* =========================================================
+   إغلاق نافذة إضافة صنف
+========================================================= */
+
+function closeProductModal() {
+
+    const modal = document.getElementById("productModal");
+
+    if (!modal) return;
+
+    modal.classList.remove("show");
+
+}
+
+
+/* =========================================================
+   إنشاء رقم الصنف تلقائيًا
+========================================================= */
+
+async function generateProductCode() {
+
+    const { count, error } = await supabase
+        .from("products")
+        .select("*", {
+            count: "exact",
+            head: true
+        });
+
+    if (error) {
+
+        console.error(error);
+
+        return "PR-" + Date.now();
+
+    }
+
+    const number = (count || 0) + 1;
+
+    return "PR-" +
+        String(number).padStart(6, "0");
+}
+
+
+/* =========================================================
+   حفظ صنف جديد
+========================================================= */
+
+async function saveNewProduct(event) {
+
+    event.preventDefault();
+
+    const productName =
+        document.getElementById("productName").value.trim();
+
+    const unitId =
+        document.getElementById("productUnit").value;
+
+    const warehouseId =
+        document.getElementById("productWarehouse").value;
+
+    const sourceId =
+        document.getElementById("productSource").value || null;
+
+    const minimumStock =
+        Number(document.getElementById("minimumStock").value || 0);
+
+    const warningStock =
+        Number(document.getElementById("warningStock").value || 0);
+
+    const targetStock =
+        Number(document.getElementById("targetStock").value || 0);
+
+    const notes =
+        document.getElementById("productNotes").value.trim();
+
+
+    if (!productName || !unitId || !warehouseId) {
+
+        alert("يرجى تعبئة اسم الصنف والوحدة والمخزن.");
+
+        return;
+    }
+
+
+    const code = await generateProductCode();
+
+
+    const {
+        data: { user }
+    } = await supabase.auth.getUser();
+
+
+    const { error } = await supabase
+        .from("products")
+        .insert({
+
+            product_code: code,
+            product_name: productName,
+            unit_id: unitId,
+            warehouse_id: warehouseId,
+            source_id: sourceId,
+            minimum_stock: minimumStock,
+            warning_stock: warningStock,
+            target_stock: targetStock,
+            notes: notes,
+            active: true
+
+        });
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("حدث خطأ أثناء حفظ الصنف: " + error.message);
+
+        return;
+    }
+
+
+    alert("تمت إضافة الصنف بنجاح.");
+
+    document.getElementById("productForm").reset();
+
+    closeProductModal();
+
+    await loadInventory();
+
+    await loadProductSelects();
+
+    await loadProductsTable();
+
+}
+
+
+/* =========================================================
+   تحميل الأصناف في قوائم الحركات
+========================================================= */
+
+async function loadMovementProducts() {
+
+    const { data, error } = await supabase
+        .from("inventory_status")
+        .select("*")
+        .order("product_name");
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+    }
+
+
+    const incoming =
+        document.getElementById("incomingProduct");
+
+    const outgoing =
+        document.getElementById("outgoingProduct");
+
+
+    [incoming, outgoing].forEach(select => {
+
+        if (!select) return;
+
+        select.innerHTML =
+            '<option value="">اختر الصنف</option>';
+
+        (data || []).forEach(product => {
+
+            select.innerHTML += `
+                <option value="${product.id}">
+                    ${product.product_name}
+                    — ${product.current_stock}
+                    ${product.unit_name || ""}
+                </option>
+            `;
+
+        });
+
+    });
+
+}
+
+
+/* =========================================================
+   تسجيل حركة دخول
+========================================================= */
+
+async function saveIncoming(event) {
+
+    event.preventDefault();
+
+
+    const productId =
+        document.getElementById("incomingProduct").value;
+
+    const quantity =
+        Number(document.getElementById("incomingQuantity").value);
+
+    const sourceId =
+        document.getElementById("incomingSource").value || null;
+
+    const notes =
+        document.getElementById("incomingNotes").value.trim();
+
+
+    if (!productId || quantity <= 0) {
+
+        alert("يرجى اختيار الصنف وإدخال كمية صحيحة.");
+
+        return;
+    }
+
+
+    const {
+        data: { user }
+    } = await supabase.auth.getUser();
+
+
+    const product =
+        inventoryData.find(p => p.id === productId);
+
+
+    const warehouseId =
+        product ? product.warehouse_id : null;
+
+
+    const { error } = await supabase
+        .from("transactions")
+        .insert({
+
+            product_id: productId,
+            warehouse_id: warehouseId,
+            source_id: sourceId,
+            transaction_date: new Date()
+                .toISOString()
+                .slice(0, 10),
+
+            transaction_type: "in",
+
+            quantity: quantity,
+
+            notes: notes,
+
+            created_by: user.id
+
+        });
+
+
+    if (error) {
+
+        alert("حدث خطأ: " + error.message);
+
+        return;
+    }
+
+
+    alert("تم تسجيل الدخول إلى المخزن.");
+
+    document.getElementById("incomingForm").reset();
+
+    await loadInventory();
+
+    await loadMovementProducts();
+
+    await loadMovementTables();
+
+}
+
+
+/* =========================================================
+   تسجيل حركة خروج
+========================================================= */
+
+async function saveOutgoing(event) {
+
+    event.preventDefault();
+
+
+    const productId =
+        document.getElementById("outgoingProduct").value;
+
+    const quantity =
+        Number(document.getElementById("outgoingQuantity").value);
+
+    const destination =
+        document.getElementById("outgoingDestination").value.trim();
+
+    const notes =
+        document.getElementById("outgoingNotes").value.trim();
+
+
+    if (!productId || quantity <= 0) {
+
+        alert("يرجى اختيار الصنف وإدخال كمية صحيحة.");
+
+        return;
+    }
+
+
+    const product =
+        inventoryData.find(p => p.id === productId);
+
+
+    if (!product) {
+
+        alert("لم يتم العثور على الصنف.");
+
+        return;
+    }
+
+
+    if (Number(product.current_stock) < quantity) {
+
+        alert(
+            "لا يمكن إخراج هذه الكمية. " +
+            "المخزون الحالي هو: " +
+            product.current_stock
+        );
+
+        return;
+    }
+
+
+    const {
+        data: { user }
+    } = await supabase.auth.getUser();
+
+
+    const { error } = await supabase
+        .from("transactions")
+        .insert({
+
+            product_id: productId,
+
+            warehouse_id:
+                product.warehouse_id || null,
+
+            transaction_date:
+                new Date()
+                    .toISOString()
+                    .slice(0, 10),
+
+            transaction_type: "out",
+
+            quantity: quantity,
+
+            notes:
+                destination
+                    ? `الجهة: ${destination} ${notes ? " - " + notes : ""}`
+                    : notes,
+
+            created_by: user.id
+
+        });
+
+
+    if (error) {
+
+        alert("حدث خطأ: " + error.message);
+
+        return;
+    }
+
+
+    alert("تم تسجيل الخروج من المخزن.");
+
+    document.getElementById("outgoingForm").reset();
+
+    await loadInventory();
+
+    await loadMovementProducts();
+
+    await loadMovementTables();
+
+}
+
+
+/* =========================================================
+   تحميل جدول حركات اليوم
+========================================================= */
+
+async function loadMovementTables() {
+
+    const today =
+        new Date()
+            .toISOString()
+            .slice(0, 10);
+
+
+    const { data, error } = await supabase
+        .from("transactions")
+        .select(`
+            id,
+            transaction_date,
+            transaction_type,
+            quantity,
+            notes,
+            product_id,
+            created_at,
+            products (
+                product_name,
+                unit_id
+            )
+        `)
+        .eq("transaction_date", today)
+        .order("created_at", {
+            ascending: false
+        });
+
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+    }
+
+
+    const incomingBody =
+        document.getElementById("incomingTableBody");
+
+    const outgoingBody =
+        document.getElementById("outgoingTableBody");
+
+
+    if (incomingBody) incomingBody.innerHTML = "";
+
+    if (outgoingBody) outgoingBody.innerHTML = "";
+
+
+    (data || []).forEach(transaction => {
+
+        const productName =
+            transaction.products?.product_name || "—";
+
+
+        const row = `
+            <tr>
+                <td>${productName}</td>
+                <td>${transaction.quantity}</td>
+                <td>${transaction.notes || "—"}</td>
+                <td>${transaction.transaction_date}</td>
+                <td>—</td>
+            </tr>
+        `;
+
+
+        if (transaction.transaction_type === "in") {
+
+            if (incomingBody) {
+                incomingBody.innerHTML += row;
+            }
+
+        } else {
+
+            if (outgoingBody) {
+                outgoingBody.innerHTML += row;
+            }
+
+        }
+
+    });
+
+}
+
+
+/* =========================================================
+   جدول الأصناف
+========================================================= */
+
+async function loadProductsTable() {
+
+    const { data, error } = await supabase
+        .from("inventory_status")
+        .select("*")
+        .order("product_name");
+
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+    }
+
+
+    const body =
+        document.getElementById("productsTableBody");
+
+    if (!body) return;
+
+
+    body.innerHTML = "";
+
+
+    (data || []).forEach(product => {
+
+        let statusText = "طبيعي";
+        let statusClass = "status-normal";
+
+
+        if (product.stock_status === "low") {
+
+            statusText = "منخفض";
+            statusClass = "status-low";
+
+        }
+
+
+        if (product.stock_status === "purchase") {
+
+            statusText = "يجب الشراء";
+            statusClass = "status-purchase";
+
+        }
+
+
+        if (product.stock_status === "out_of_stock") {
+
+            statusText = "نفد المخزون";
+            statusClass = "status-out";
+
+        }
+
+
+        const warehouse =
+            warehousesData.find(
+                w => w.id === product.warehouse_id
+            );
+
+
+        const source =
+            sourcesData.find(
+                s => s.id === product.source_id
+            );
+
+
+        body.innerHTML += `
+
+            <tr>
+
+                <td>
+                    <strong>
+                        ${product.product_name}
+                    </strong>
+                    <small>
+                        ${product.product_code}
+                    </small>
+                </td>
+
+                <td>
+                    ${product.unit_name || "—"}
+                </td>
+
+                <td>
+                    ${warehouse?.name || "—"}
+                </td>
+
+                <td>
+                    ${source?.name || "—"}
+                </td>
+
+                <td>
+                    <strong>
+                        ${product.current_stock}
+                    </strong>
+                </td>
+
+                <td>
+                    ${product.minimum_stock}
+                </td>
+
+                <td>
+                    <span class="${statusClass}">
+                        ${statusText}
+                    </span>
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================================
+   تهيئة النظام الجديد
+========================================================= */
+
+async function initializeInventorySystem() {
+
+    try {
+
+        await loadWarehouses();
+
+        await loadSources();
+
+        await loadProductUnits();
+
+        await loadProductsTable();
+
+        await loadMovementProducts();
+
+        await loadMovementTables();
+
+    } catch (error) {
+
+        console.error(
+            "Inventory system initialization error:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ربط الأزرار
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const addProductBtn =
+        document.getElementById("addProductBtn");
+
+    const closeProductModalBtn =
+        document.getElementById("closeProductModal");
+
+    const cancelProductBtn =
+        document.getElementById("cancelProductBtn");
+
+    const productForm =
+        document.getElementById("productForm");
+
+    const incomingForm =
+        document.getElementById("incomingForm");
+
+    const outgoingForm =
+        document.getElementById("outgoingForm");
+
+
+    if (addProductBtn) {
+
+        addProductBtn.addEventListener(
+            "click",
+            openProductModal
+        );
+
+    }
+
+
+    if (closeProductModalBtn) {
+
+        closeProductModalBtn.addEventListener(
+            "click",
+            closeProductModal
+        );
+
+    }
+
+
+    if (cancelProductBtn) {
+
+        cancelProductBtn.addEventListener(
+            "click",
+            closeProductModal
+        );
+
+    }
+
+
+    if (productForm) {
+
+        productForm.addEventListener(
+            "submit",
+            saveNewProduct
+        );
+
+    }
+
+
+    if (incomingForm) {
+
+        incomingForm.addEventListener(
+            "submit",
+            saveIncoming
+        );
+
+    }
+
+
+    if (outgoingForm) {
+
+        outgoingForm.addEventListener(
+            "submit",
+            saveOutgoing
+        );
+
+    }
+
+});
