@@ -2,7 +2,7 @@
 // SUPABASE CONFIGURATION
 // ======================================================
 
-const SUPABASE_URL = "https://fgmkgskvcxmefsaidkgi.supabase.co/rest/v1/";
+const SUPABASE_URL = "https://fgmkgskvcxmefsaidkgi.supabase.co/";
 
 const SUPABASE_KEY = "sb_publishable_aBhNqSEabLliyJK1xs0qaw_YobeNYuK";
 
