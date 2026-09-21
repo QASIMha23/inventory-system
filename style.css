@@ -483,3 +483,173 @@ th {
         flex-direction: column;
     }
 }
+/* =========================================
+   حركة المخزون
+========================================= */
+
+.movement-section {
+    margin-bottom: 30px;
+    border-radius: 14px;
+    padding: 20px;
+    border: 1px solid #ddd;
+}
+
+.incoming-section {
+    background: #f0fff4;
+    border-right: 6px solid #22c55e;
+}
+
+.outgoing-section {
+    background: #fff1f2;
+    border-right: 6px solid #ef4444;
+}
+
+.movement-header {
+    margin-bottom: 20px;
+}
+
+.movement-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 22px;
+}
+
+.movement-header p {
+    margin: 0;
+    opacity: 0.75;
+}
+
+.movement-form {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    align-items: end;
+    margin-bottom: 25px;
+}
+
+.incoming-btn,
+.outgoing-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+}
+
+.incoming-btn {
+    background: #16a34a;
+}
+
+.incoming-btn:hover {
+    background: #15803d;
+}
+
+.outgoing-btn {
+    background: #dc2626;
+}
+
+.outgoing-btn:hover {
+    background: #b91c1c;
+}
+
+.movement-table {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    overflow-x: auto;
+}
+
+.movement-table h4 {
+    margin-top: 0;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px;
+    padding: 25px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.close-btn {
+    border: none;
+    background: transparent;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.primary-btn,
+.secondary-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.primary-btn {
+    background: #2563eb;
+    color: white;
+}
+
+.secondary-btn {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+@media (max-width: 900px) {
+
+    .movement-form {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width {
+        grid-column: auto;
+    }
+
+}
