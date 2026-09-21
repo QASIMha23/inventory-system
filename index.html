@@ -164,8 +164,223 @@
         </section>
 
 
-<section id="productsPage" class="page">
+<section id="transactionsPage" class="page">
 
+    <div class="page-header">
+
+        <div>
+            <h2>حركة المخزون</h2>
+            <p>تسجيل كل ما يدخل إلى المخزن وما يخرج منه</p>
+        </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- داخل إلى المخزن -->
+    <!-- ================================= -->
+
+    <div class="movement-section incoming-section">
+
+        <div class="movement-header">
+
+            <div>
+                <h3>🟢 داخل إلى المخزن</h3>
+                <p>تسجيل الأصناف التي تدخل إلى المخزن</p>
+            </div>
+
+        </div>
+
+
+        <form id="incomingForm" class="movement-form">
+
+            <div class="form-group">
+
+                <label>الصنف</label>
+
+                <select id="incomingProduct" required></select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>الكمية</label>
+
+                <input
+                    type="number"
+                    id="incomingQuantity"
+                    min="0.001"
+                    step="0.001"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>المصدر</label>
+
+                <select id="incomingSource"></select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>ملاحظات</label>
+
+                <input
+                    type="text"
+                    id="incomingNotes"
+                    placeholder="ملاحظات اختيارية"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="incoming-btn"
+            >
+                + تسجيل دخول إلى المخزن
+            </button>
+
+        </form>
+
+
+        <div class="movement-table">
+
+            <h4>حركات الدخول</h4>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>الصنف</th>
+                        <th>الكمية</th>
+                        <th>المصدر</th>
+                        <th>التاريخ</th>
+                        <th>المستخدم</th>
+                    </tr>
+                </thead>
+
+                <tbody id="incomingTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================= -->
+    <!-- خارج من المخزن -->
+    <!-- ================================= -->
+
+    <div class="movement-section outgoing-section">
+
+        <div class="movement-header">
+
+            <div>
+                <h3>🔴 خارج من المخزن</h3>
+                <p>تسجيل الأصناف التي تخرج من المخزن</p>
+            </div>
+
+        </div>
+
+
+        <form id="outgoingForm" class="movement-form">
+
+            <div class="form-group">
+
+                <label>الصنف</label>
+
+                <select id="outgoingProduct" required></select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>الكمية</label>
+
+                <input
+                    type="number"
+                    id="outgoingQuantity"
+                    min="0.001"
+                    step="0.001"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>الجهة / السبب</label>
+
+                <input
+                    type="text"
+                    id="outgoingDestination"
+                    placeholder="مثال: المبيعات"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>ملاحظات</label>
+
+                <input
+                    type="text"
+                    id="outgoingNotes"
+                    placeholder="ملاحظات اختيارية"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="outgoing-btn"
+            >
+                − تسجيل خروج من المخزن
+            </button>
+
+        </form>
+
+
+        <div class="movement-table">
+
+            <h4>حركات الخروج</h4>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>الصنف</th>
+                        <th>الكمية</th>
+                        <th>الجهة / السبب</th>
+                        <th>التاريخ</th>
+                        <th>المستخدم</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="outgoingTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
     <div class="page-header">
         <div>
             <h2>الأصناف</h2>
