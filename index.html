@@ -1,1 +1,341 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>نظام المخزون</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div id="loginScreen" class="login-screen">
+
+    <div class="login-box">
+
+        <div class="logo">📦</div>
+
+        <h1>نظام المخزون</h1>
+
+        <p>تسجيل الدخول</p>
+
+        <input
+            id="email"
+            type="email"
+            placeholder="البريد الإلكتروني"
+        >
+
+        <input
+            id="password"
+            type="password"
+            placeholder="كلمة المرور"
+        >
+
+        <button id="loginButton">
+            دخول
+        </button>
+
+        <div id="loginMessage"></div>
+
+    </div>
+
+</div>
+
+
+<div id="app" class="app hidden">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            📦 المخزون
+        </div>
+
+        <button data-page="dashboard">
+            🏠 الرئيسية
+        </button>
+
+        <button data-page="products">
+            📦 الأصناف
+        </button>
+
+        <button data-page="transactions">
+            ↕️ حركة المخزون
+        </button>
+
+        <button data-page="purchases">
+            🔴 يجب الشراء
+        </button>
+
+        <button data-page="adjustments">
+            📋 الجرد
+        </button>
+
+        <button data-page="reports">
+            📊 التقارير
+        </button>
+
+        <button data-page="users">
+            👥 المستخدمون
+        </button>
+
+        <div class="sidebar-bottom">
+
+            <button id="logoutButton">
+                🚪 تسجيل الخروج
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+                <h2 id="pageTitle">
+                    الرئيسية
+                </h2>
+            </div>
+
+            <div id="currentUser"></div>
+
+        </header>
+
+
+        <section id="dashboardPage" class="page">
+
+            <div class="stats">
+
+                <div class="stat-card">
+                    <span>إجمالي الأصناف</span>
+                    <strong id="totalProducts">0</strong>
+                </div>
+
+                <div class="stat-card warning">
+                    <span>منخفض المخزون</span>
+                    <strong id="lowProducts">0</strong>
+                </div>
+
+                <div class="stat-card danger">
+                    <span>يجب الشراء</span>
+                    <strong id="purchaseProducts">0</strong>
+                </div>
+
+                <div class="stat-card critical">
+                    <span>نفد المخزون</span>
+                    <strong id="outProducts">0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-title">
+                    🔴 يجب الشراء الآن
+                </div>
+
+                <div id="purchaseTable"></div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-title">
+                    🟠 اقترب من النفاد
+                </div>
+
+                <div id="lowTable"></div>
+
+            </div>
+
+        </section>
+
+
+        <section id="productsPage" class="page hidden">
+
+            <div class="page-actions">
+
+                <input
+                    id="productSearch"
+                    placeholder="🔎 البحث عن صنف..."
+                >
+
+                <button id="addProductButton">
+                    + إضافة صنف
+                </button>
+
+            </div>
+
+            <div class="panel">
+
+                <div id="productsTable"></div>
+
+            </div>
+
+        </section>
+
+
+        <section id="transactionsPage" class="page hidden">
+
+            <div class="panel">
+
+                <h3>حركة اليوم</h3>
+
+                <p id="todayDate"></p>
+
+                <div class="transaction-form">
+
+                    <select id="transactionProduct"></select>
+
+                    <select id="transactionType">
+
+                        <option value="in">
+                            وارد
+                        </option>
+
+                        <option value="out">
+                            صادر
+                        </option>
+
+                    </select>
+
+                    <input
+                        id="transactionQuantity"
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        placeholder="الكمية"
+                    >
+
+                    <input
+                        id="transactionNotes"
+                        placeholder="ملاحظات"
+                    >
+
+                    <button id="saveTransaction">
+                        حفظ الحركة
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="panel">
+
+                <h3>حركات اليوم</h3>
+
+                <div id="todayTransactions"></div>
+
+            </div>
+
+        </section>
+
+
+        <section id="purchasesPage" class="page hidden">
+
+            <div class="panel">
+
+                <h3>🔴 قائمة الشراء</h3>
+
+                <div id="purchaseFullTable"></div>
+
+            </div>
+
+        </section>
+
+
+        <section id="adjustmentsPage" class="page hidden">
+
+            <div class="panel">
+
+                <h3>📋 الجرد</h3>
+
+                <p>
+                    استخدم الجرد لتصحيح الفرق بين الرصيد الفعلي ورصيد النظام.
+                </p>
+
+                <div class="transaction-form">
+
+                    <select id="adjustProduct"></select>
+
+                    <input
+                        id="actualQuantity"
+                        type="number"
+                        min="0"
+                        step="0.001"
+                        placeholder="الكمية الفعلية"
+                    >
+
+                    <input
+                        id="adjustReason"
+                        placeholder="سبب التعديل"
+                    >
+
+                    <button id="saveAdjustment">
+                        حفظ الجرد
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section id="reportsPage" class="page hidden">
+
+            <div class="panel">
+
+                <h3>📊 التقارير</h3>
+
+                <p>
+                    التقارير التفصيلية يمكن إضافتها بعد التأكد من أن دورة
+                    المخزون الأساسية تعمل بالشكل المطلوب.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <section id="usersPage" class="page hidden">
+
+            <div class="panel">
+
+                <h3>👥 المستخدمون</h3>
+
+                <p>
+                    إدارة المستخدمين تتم من Supabase Auth في النسخة الأولى.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- Supabase -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
